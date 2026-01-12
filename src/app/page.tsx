@@ -4,12 +4,12 @@ import { db } from "../db";
 import { notes } from "../db/schema";
 import { deleteNote } from "../server/actions/notes";
 import { auth } from "@/src/utils/auth";
+import { Button, Text, Title } from "../components/ui/client-component";
+import { PiPencilSimple, PiTrash, PiPlus } from "react-icons/pi";
 
 export default async function Home() {
-  // ✅ headers() is ASYNC in Next 15/16
   const hdrs = await headers();
 
-  // ✅ Correct Better Auth session retrieval
   const session = await auth.api.getSession({
     headers: Object.fromEntries(hdrs.entries()),
   });
@@ -17,10 +17,12 @@ export default async function Home() {
   if (!session) {
     return (
       <main className="max-w-xl mx-auto p-6 space-y-6">
-        <h1 className="text-2xl font-bold">Notebook</h1>
-        <p className="text-gray-600">
+        <Title as="h1" className="text-2xl">
+          Notebook
+        </Title>
+        <Text className="text-gray-600">
           Please sign in with GitHub to view your notes.
-        </p>
+        </Text>
       </main>
     );
   }
@@ -29,27 +31,34 @@ export default async function Home() {
 
   return (
     <main className="max-w-xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Notebook</h1>
+      <Title as="h1" className="text-2xl">
+        Notebook
+      </Title>
 
-      <Link
-        href="/new"
-        className="inline-block px-4 py-2 bg-black text-white rounded"
-      >
-        New Note
+      <Link href="/new">
+        <Button className="gap-2">
+          <PiPlus className="h-4 w-4" />
+          New Note
+        </Button>
       </Link>
 
-      <ul className="space-y-4">
+      <div className="space-y-4">
         {allNotes.map((note) => (
-          <li key={note.id} className="border p-4 rounded bg-white">
-            <h2 className="font-semibold">{note.title}</h2>
-            <p className="text-sm text-gray-600">{note.content}</p>
+          <div
+            key={note.id}
+            className="border border-gray-200 p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow"
+          >
+            <Title as="h2" className="text-lg mb-2">
+              {note.title}
+            </Title>
+            <Text className="text-gray-600 mb-4">{note.content}</Text>
 
-            <div className="flex gap-4 mt-3">
-              <Link
-                href={`/notes/${note.id}/edit`}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                Edit
+            <div className="flex gap-3">
+              <Link href={`/notes/${note.id}/edit`}>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <PiPencilSimple className="h-4 w-4" />
+                  Edit
+                </Button>
               </Link>
 
               <form
@@ -58,14 +67,21 @@ export default async function Home() {
                   await deleteNote(note.id);
                 }}
               >
-                <button className="text-sm text-red-500">
+                <Button
+                  type="submit"
+                  variant="outline"
+                  color="danger"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <PiTrash className="h-4 w-4" />
                   Delete
-                </button>
+                </Button>
               </form>
             </div>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     </main>
   );
 }

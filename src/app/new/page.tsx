@@ -1,37 +1,43 @@
 import Link from "next/link";
 import { createNote } from "../../server/actions/notes";
+import { Button, Title, Input, Textarea } from "../../components/ui/client-component";
+import { PiArrowLeft } from "react-icons/pi";
 
 export default function NewNotePage() {
   return (
-    <main className="max-w-xl mx-auto p-6 space-y-4">
-      <Link
-        href="/"
-        className="text-sm text-gray-600 hover:underline"
-      >
-        ← Back to Home
+    <main className="max-w-xl mx-auto p-6 space-y-6">
+      <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+        <PiArrowLeft className="h-4 w-4" />
+        Back to Home
       </Link>
 
-      <h1 className="text-xl font-bold">New Note</h1>
+      <Title as="h1" className="text-xl">
+        New Note
+      </Title>
 
       <form action={createNote} className="space-y-4">
-        <input
-          name="title"
-          placeholder="Title"
-          className="w-full border p-2 rounded"
-          required
-        />
+        <div>
+          <Input
+            name="title"
+            placeholder="Note title"
+            required
+            className="w-full"
+          />
+        </div>
 
-        <textarea
-          name="content"
-          placeholder="Content"
-          className="w-full border p-2 rounded"
-          rows={5}
-          required
-        />
+        <div>
+          <Textarea
+            name="content"
+            placeholder="Write your note content here..."
+            rows={5}
+            required
+            className="w-full"
+          />
+        </div>
 
-        <button className="px-4 py-2 bg-black text-white rounded">
-          Save
-        </button>
+        <Button type="submit">
+          Save Note
+        </Button>
       </form>
     </main>
   );
