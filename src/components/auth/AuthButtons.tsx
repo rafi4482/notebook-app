@@ -1,6 +1,6 @@
 "use client";
 
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/src/utils/auth-client";
 
 type User = {
   id: string;

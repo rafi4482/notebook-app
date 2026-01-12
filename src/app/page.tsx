@@ -2,8 +2,8 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { db } from "../db";
 import { notes } from "../db/schema";
-import { deleteNote } from "../actions/notes";
-import { auth } from "@/lib/auth";
+import { deleteNote } from "../server/actions/notes";
+import { auth } from "@/src/utils/auth";
 
 export default async function Home() {
   // ✅ headers() is ASYNC in Next 15/16

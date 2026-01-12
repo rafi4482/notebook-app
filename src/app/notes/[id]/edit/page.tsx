@@ -2,7 +2,7 @@ import Link from "next/link";
 import { db } from "../../../../db";
 import { notes } from "../../../../db/schema";
 import { eq } from "drizzle-orm";
-import { updateNote } from "../../../../actions/notes";
+import { updateNote } from "../../../../server/actions/notes";
 import { notFound } from "next/navigation";
 
 export default async function EditNotePage({

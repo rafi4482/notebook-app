@@ -1,7 +1,7 @@
-import "./globals.css";
+import "../styles/globals.css";
 import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import AuthButtons from "./components/AuthButtons";
+import { auth } from "@/src/utils/auth";
+import AuthButtons from "../components/auth/AuthButtons";
 
 export default async function RootLayout({
   children,
