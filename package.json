@@ -11,6 +11,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "better-auth": "^1.4.10",
     "drizzle-orm": "^0.45.1",
     "framer-motion": "^12.24.7",
     "next": "16.1.1",
