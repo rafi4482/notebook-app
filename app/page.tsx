@@ -1,9 +1,30 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { db } from "../db";
 import { notes } from "../db/schema";
 import { deleteNote } from "../actions/notes";
+import { auth } from "@/lib/auth";
 
 export default async function Home() {
+  // ✅ headers() is ASYNC in Next 15/16
+  const hdrs = await headers();
+
+  // ✅ Correct Better Auth session retrieval
+  const session = await auth.api.getSession({
+    headers: Object.fromEntries(hdrs.entries()),
+  });
+
+  if (!session) {
+    return (
+      <main className="max-w-xl mx-auto p-6 space-y-6">
+        <h1 className="text-2xl font-bold">Notebook</h1>
+        <p className="text-gray-600">
+          Please sign in with GitHub to view your notes.
+        </p>
+      </main>
+    );
+  }
+
   const allNotes = await db.select().from(notes);
 
   return (
@@ -24,7 +45,6 @@ export default async function Home() {
             <p className="text-sm text-gray-600">{note.content}</p>
 
             <div className="flex gap-4 mt-3">
-              {/* EDIT */}
               <Link
                 href={`/notes/${note.id}/edit`}
                 className="text-sm text-blue-600 hover:underline"
@@ -32,7 +52,6 @@ export default async function Home() {
                 Edit
               </Link>
 
-              {/* DELETE */}
               <form
                 action={async () => {
                   "use server";
