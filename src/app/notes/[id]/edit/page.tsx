@@ -22,13 +22,18 @@ export default async function EditNotePage({
     notFound();
   }
 
+  // Get or create user
+  const { getOrCreateUser } = await import("../../../../server/actions/users");
+  const user = await getOrCreateUser();
+
+  // Get note and verify it belongs to the user
   const note = await db
     .select()
     .from(notes)
     .where(eq(notes.id, noteId))
     .then((res) => res[0]);
 
-  if (!note) {
+  if (!note || note.userId !== user.id) {
     notFound();
   }
 

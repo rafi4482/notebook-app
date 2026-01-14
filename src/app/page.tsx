@@ -2,6 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { db } from "../db";
 import { notes } from "../db/schema";
+import { eq } from "drizzle-orm";
 import { deleteNote } from "../server/actions/notes";
 import { auth } from "@/src/utils/auth";
 import { Button, Text, Title } from "../components/ui/client-component";
@@ -27,7 +28,15 @@ export default async function Home() {
     );
   }
 
-  const allNotes = await db.select().from(notes);
+  // Get or create user
+  const { getOrCreateUser } = await import("../server/actions/users");
+  const user = await getOrCreateUser();
+
+  // Get only notes for this user
+  const allNotes = await db
+    .select()
+    .from(notes)
+    .where(eq(notes.userId, user.id));
 
   return (
     <main className="max-w-xl mx-auto p-6 space-y-6">
