@@ -5,19 +5,34 @@ import { notes } from "../../db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { noteSchema } from "../../lib/validations";
 
 /**
  * CREATE
  */
-export async function createNote(formData: FormData) {
+export async function createNote(
+  prevState: { errors?: { title?: string[]; content?: string[] } } | null,
+  formData: FormData
+) {
   const title = formData.get("title");
   const content = formData.get("content");
 
-  if (!title || !content) return;
+  // Validate with zod
+  const result = noteSchema.safeParse({
+    title,
+    content,
+  });
+
+  if (!result.success) {
+    // Return validation errors
+    return {
+      errors: result.error.flatten().fieldErrors,
+    };
+  }
 
   await db.insert(notes).values({
-    title: String(title),
-    content: String(content),
+    title: result.data.title,
+    content: result.data.content,
   });
 
   revalidatePath("/");
@@ -29,18 +44,30 @@ export async function createNote(formData: FormData) {
  */
 export async function updateNote(
   id: number,
+  prevState: { errors?: { title?: string[]; content?: string[] } } | null,
   formData: FormData
 ) {
   const title = formData.get("title");
   const content = formData.get("content");
 
-  if (!title || !content) return;
+  // Validate with zod
+  const result = noteSchema.safeParse({
+    title,
+    content,
+  });
+
+  if (!result.success) {
+    // Return validation errors
+    return {
+      errors: result.error.flatten().fieldErrors,
+    };
+  }
 
   await db
     .update(notes)
     .set({
-      title: String(title),
-      content: String(content),
+      title: result.data.title,
+      content: result.data.content,
     })
     .where(eq(notes.id, id));
 

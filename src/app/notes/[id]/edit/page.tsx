@@ -6,6 +6,7 @@ import { updateNote } from "../../../../server/actions/notes";
 import { notFound } from "next/navigation";
 import { Button, Title, Input, Textarea } from "../../../../components/ui/client-component";
 import { PiArrowLeft } from "react-icons/pi";
+import { EditNoteForm } from "./EditNoteForm";
 
 export default async function EditNotePage({
   params,
@@ -42,35 +43,7 @@ export default async function EditNotePage({
         Edit Note
       </Title>
 
-      <form
-        action={updateNote.bind(null, note.id)}
-        className="space-y-4"
-      >
-        <div>
-          <Input
-            name="title"
-            defaultValue={note.title}
-            placeholder="Note title"
-            required
-            className="w-full"
-          />
-        </div>
-
-        <div>
-          <Textarea
-            name="content"
-            defaultValue={note.content}
-            placeholder="Note content"
-            rows={5}
-            required
-            className="w-full"
-          />
-        </div>
-
-        <Button type="submit">
-          Update Note
-        </Button>
-      </form>
+      <EditNoteForm note={note} />
     </main>
   );
 }
