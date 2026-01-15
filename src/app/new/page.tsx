@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { createNote } from "../../server/actions/notes";
-import { Button, Title, Input, Textarea } from "../../components/ui/client-component";
+import { Button, Title, Input } from "../../components/ui/client-component";
+import TipTapEditor from "../../components/editor/TipTapEditor";
 import { PiArrowLeft } from "react-icons/pi";
 import { useActionState } from "react";
 
@@ -22,24 +23,29 @@ export default function NewNotePage() {
 
       <form action={formAction} className="space-y-4">
         <div>
-          <Input
+          <TipTapEditor
             name="title"
             placeholder="Note title"
             required
             className="w-full"
-            error={state?.errors?.title?.[0]}
+            simple
           />
+          {state?.errors?.title?.[0] && (
+            <p className="text-sm text-red-600">{state?.errors?.title?.[0]}</p>
+          )}
         </div>
 
         <div>
-          <Textarea
+          <TipTapEditor
             name="content"
             placeholder="Write your note content here..."
-            rows={5}
             required
             className="w-full"
-            error={state?.errors?.content?.[0]}
+            simple
           />
+          {state?.errors?.content?.[0] && (
+            <p className="text-sm text-red-600">{state?.errors?.content?.[0]}</p>
+          )}
         </div>
 
         <Button type="submit">

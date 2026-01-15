@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { updateNote } from "../../../../server/actions/notes";
-import { Button, Input, Textarea } from "../../../../components/ui/client-component";
+import { Button, Input } from "../../../../components/ui/client-component";
+import TipTapEditor from "../../../../components/editor/TipTapEditor";
 
 interface EditNoteFormProps {
   note: {
@@ -22,26 +23,24 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
   return (
     <form action={formAction} className="space-y-4">
       <div>
-        <Input
+        <TipTapEditor
           name="title"
-          defaultValue={note.title}
+          initialContent={note.title}
           placeholder="Note title"
           required
           className="w-full"
-          error={state?.errors?.title?.[0]}
+          simple
         />
+        {state?.errors?.title?.[0] && (
+          <p className="text-sm text-red-600">{state?.errors?.title?.[0]}</p>
+        )}
       </div>
 
       <div>
-        <Textarea
-          name="content"
-          defaultValue={note.content}
-          placeholder="Note content"
-          rows={5}
-          required
-          className="w-full"
-          error={state?.errors?.content?.[0]}
-        />
+        <TipTapEditor name="content" initialContent={note.content} required className="w-full" simple />
+        {state?.errors?.content?.[0] && (
+          <p className="text-sm text-red-600">{state?.errors?.content?.[0]}</p>
+        )}
       </div>
 
       <Button type="submit">

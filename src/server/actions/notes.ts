@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { noteSchema } from "../../lib/validations";
 import { getOrCreateUser } from "./users";
+import { sanitizeContent } from "../../lib/sanitize";
 
 /**
  * CREATE
@@ -31,12 +32,16 @@ export async function createNote(
     };
   }
 
+  // Sanitize user-provided HTML so only allowed formatting remains
+  const sanitizedContent = sanitizeContent(result.data.content);
+  const sanitizedTitle = sanitizeContent(result.data.title);
+
   // Get or create user
   const user = await getOrCreateUser();
 
   await db.insert(notes).values({
-    title: result.data.title,
-    content: result.data.content,
+    title: sanitizedTitle,
+    content: sanitizedContent,
     userId: user.id,
   });
 
@@ -68,6 +73,10 @@ export async function updateNote(
     };
   }
 
+  // Sanitize user-provided HTML so only allowed formatting remains
+  const sanitizedContent = sanitizeContent(result.data.content);
+  const sanitizedTitle = sanitizeContent(result.data.title);
+
   // Get user and verify ownership
   const user = await getOrCreateUser();
   
@@ -87,8 +96,8 @@ export async function updateNote(
   await db
     .update(notes)
     .set({
-      title: result.data.title,
-      content: result.data.content,
+      title: sanitizedTitle,
+      content: sanitizedContent,
     })
     .where(eq(notes.id, id));
 
