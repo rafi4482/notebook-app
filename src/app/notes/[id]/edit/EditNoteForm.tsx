@@ -10,7 +10,7 @@ interface EditNoteFormProps {
     id: number;
     title: string;
     content: string;
-    images?: string;
+    images?: string | null;
   };
 }
 
