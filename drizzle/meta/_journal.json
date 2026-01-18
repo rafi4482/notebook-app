@@ -15,6 +15,13 @@
       "when": 1768368815882,
       "tag": "0001_fresh_junta",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1768543263250,
+      "tag": "0002_clumsy_celestials",
+      "breakpoints": true
     }
   ]
 }

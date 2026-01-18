@@ -7,6 +7,7 @@ import { deleteNote } from "../server/actions/notes";
 import { auth } from "@/src/utils/auth";
 import { Button, Text, Title } from "../components/ui/client-component";
 import { sanitizeContent } from "../lib/sanitize";
+import { ImageGallery } from "../components/ImageGallery";
 import { PiPencilSimple, PiTrash, PiPlus } from "react-icons/pi";
 
 export default async function Home() {
@@ -59,6 +60,10 @@ export default async function Home() {
             className="border border-gray-200 p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow"
           >
             <Title as="h2" className="text-lg mb-2" dangerouslySetInnerHTML={{ __html: sanitizeContent(note.title) }} />
+            
+            {/* Display image gallery if images exist */}
+            <ImageGallery imagesJson={note.images} />
+            
             {/* Render sanitized HTML so formatting (bold/italic) shows up */}
             <div className="text-gray-600 mb-4 prose" dangerouslySetInnerHTML={{ __html: sanitizeContent(note.content) }} />
 

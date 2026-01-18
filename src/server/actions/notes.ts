@@ -18,6 +18,7 @@ export async function createNote(
 ) {
   const title = formData.get("title");
   const content = formData.get("content");
+  const imagesJson = formData.get("images") as string || "[]";
 
   // Validate with zod
   const result = noteSchema.safeParse({
@@ -43,6 +44,7 @@ export async function createNote(
     title: sanitizedTitle,
     content: sanitizedContent,
     userId: user.id,
+    images: imagesJson,
   });
 
   revalidatePath("/");
@@ -59,6 +61,7 @@ export async function updateNote(
 ) {
   const title = formData.get("title");
   const content = formData.get("content");
+  const imagesJson = formData.get("images") as string || "[]";
 
   // Validate with zod
   const result = noteSchema.safeParse({
@@ -98,6 +101,7 @@ export async function updateNote(
     .set({
       title: sanitizedTitle,
       content: sanitizedContent,
+      images: imagesJson,
     })
     .where(eq(notes.id, id));
 
@@ -121,6 +125,27 @@ export async function deleteNote(id: number) {
 
   if (!note || note.userId !== user.id) {
     throw new Error("Note not found or you don't have permission to delete it");
+  }
+
+  // Delete associated images from R2
+  if (note.images) {
+    try {
+      const images = JSON.parse(note.images);
+      if (Array.isArray(images)) {
+        const { deleteImageFromR2 } = await import("../../lib/r2");
+        for (const imageUrl of images) {
+          // Extract file name from URL
+          // URL format: https://domain.com/notes-images/timestamp-random.jpg
+          const fileName = imageUrl.split("/").slice(-2).join("/");
+          await deleteImageFromR2(fileName).catch((err) => {
+            console.error("Failed to delete image from R2:", err);
+            // Don't fail the entire delete operation if image deletion fails
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Error parsing images for deletion:", err);
+    }
   }
 
   await db.delete(notes).where(eq(notes.id, id));
