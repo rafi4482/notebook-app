@@ -16,7 +16,7 @@ interface EditNoteFormProps {
 
 export function EditNoteForm({ note }: EditNoteFormProps) {
   const [state, formAction] = useActionState(
-    (prevState, formData: FormData) =>
+    (prevState: any, formData: FormData) =>
       updateNoteWithImages(note.id, prevState, formData),
     null
   );
@@ -87,15 +87,15 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
           className="w-full"
           simple
         />
-        {state?.errors?.title?.[0] && (
-          <p className="text-sm text-red-600">{state?.errors?.title?.[0]}</p>
+        {state && 'errors' in state && state.errors && 'title' in state.errors && state.errors.title?.[0] && (
+          <p className="text-sm text-red-600">{state.errors.title[0]}</p>
         )}
       </div>
 
       <div>
         <TipTapEditor name="content" initialContent={note.content} required className="w-full" simple />
-        {state?.errors?.content?.[0] && (
-          <p className="text-sm text-red-600">{state?.errors?.content?.[0]}</p>
+        {state && 'errors' in state && state.errors && 'content' in state.errors && state.errors.content?.[0] && (
+          <p className="text-sm text-red-600">{state.errors.content[0]}</p>
         )}
       </div>
 
