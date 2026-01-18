@@ -19,7 +19,7 @@ export async function getOrCreateUser() {
     throw new Error("User not authenticated");
   }
 
-  // Check if user exists
+  // Check if user exists by authId
   const existingUser = await db
     .select()
     .from(appUsers)
@@ -28,6 +28,17 @@ export async function getOrCreateUser() {
 
   if (existingUser) {
     return existingUser;
+  }
+
+  // Check if user exists by email (fallback check)
+  const userByEmail = await db
+    .select()
+    .from(appUsers)
+    .where(eq(appUsers.email, session.user.email || ""))
+    .then((res) => res[0]);
+
+  if (userByEmail) {
+    return userByEmail;
   }
 
   // Create new user
