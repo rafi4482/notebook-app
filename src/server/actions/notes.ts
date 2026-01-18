@@ -110,6 +110,64 @@ export async function updateNote(
 }
 
 /**
+ * UPDATE NOTE WITH IMAGES - Wrapper for useActionState
+ */
+export async function updateNoteWithImages(
+  id: number,
+  prevState: any,
+  formData: FormData
+) {
+  const title = formData.get("title");
+  const content = formData.get("content");
+  const imagesJson = formData.get("images") as string || "[]";
+
+  // Validate with zod
+  const result = noteSchema.safeParse({
+    title,
+    content,
+  });
+
+  if (!result.success) {
+    // Return validation errors
+    return {
+      errors: result.error.flatten().fieldErrors,
+    };
+  }
+
+  // Sanitize user-provided HTML so only allowed formatting remains
+  const sanitizedContent = sanitizeContent(result.data.content);
+  const sanitizedTitle = sanitizeContent(result.data.title);
+
+  // Get user and verify ownership
+  const user = await getOrCreateUser();
+  
+  // Verify the note belongs to the user
+  const note = await db
+    .select()
+    .from(notes)
+    .where(eq(notes.id, id))
+    .then((res) => res[0]);
+
+  if (!note || note.userId !== user.id) {
+    return {
+      errors: { _form: ["Note not found or you don't have permission to edit it"] },
+    };
+  }
+
+  await db
+    .update(notes)
+    .set({
+      title: sanitizedTitle,
+      content: sanitizedContent,
+      images: imagesJson,
+    })
+    .where(eq(notes.id, id));
+
+  revalidatePath("/");
+  redirect("/");
+}
+
+/**
  * DELETE
  */
 export async function deleteNote(id: number) {

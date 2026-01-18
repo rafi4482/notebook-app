@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useRef } from "react";
-import { updateNote } from "../../../../server/actions/notes";
+import { updateNoteWithImages } from "../../../../server/actions/notes";
 import { Button, Input } from "../../../../components/ui/client-component";
 import TipTapEditor from "../../../../components/editor/TipTapEditor";
 
@@ -16,8 +16,8 @@ interface EditNoteFormProps {
 
 export function EditNoteForm({ note }: EditNoteFormProps) {
   const [state, formAction] = useActionState(
-    (prevState: { errors?: { title?: string[]; content?: string[] } } | null, formData: FormData) =>
-      updateNote(note.id, prevState, formData),
+    (prevState, formData: FormData) =>
+      updateNoteWithImages(note.id, prevState, formData),
     null
   );
 
