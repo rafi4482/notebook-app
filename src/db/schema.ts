@@ -15,6 +15,7 @@ export const notes = pgTable("notes", {
   content: text("content").notNull(),
   userId: integer("user_id").notNull().references(() => appUsers.id, { onDelete: "cascade" }),
   images: text("images"), // JSON array of image URLs stored as text
+  tags: text("tags"), // JSON array of tag strings stored as text
   createdAt: timestamp("created_at").defaultNow(),
 });
 

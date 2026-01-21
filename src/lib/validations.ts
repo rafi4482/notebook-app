@@ -9,6 +9,7 @@ export const noteSchema = z.object({
     .string()
     .min(1, "Content is required")
     .max(10000, "Content must be less than 10000 characters"),
+  tags: z.array(z.string().min(1).max(50)).max(20).optional(),
 });
 
 export type NoteInput = z.infer<typeof noteSchema>;

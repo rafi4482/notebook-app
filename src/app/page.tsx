@@ -8,6 +8,7 @@ import { auth } from "@/src/utils/auth";
 import { Button, Text, Title } from "../components/ui/client-component";
 import { sanitizeContent } from "../lib/sanitize";
 import { ImageGallery } from "../components/ImageGallery";
+import TagList from "../components/TagList";
 import { PiPencilSimple, PiTrash, PiPlus } from "react-icons/pi";
 
 export default async function Home() {
@@ -66,6 +67,18 @@ export default async function Home() {
             
             {/* Render sanitized HTML so formatting (bold/italic) shows up */}
             <div className="text-gray-600 mb-4 prose" dangerouslySetInnerHTML={{ __html: sanitizeContent(note.content) }} />
+
+            {note.tags && (() => {
+              try {
+                const t = JSON.parse(note.tags);
+                if (Array.isArray(t) && t.length > 0) {
+                  return <TagList noteId={note.id} initialTags={t} />;
+                }
+              } catch (err) {
+                return null;
+              }
+              return null;
+            })()}
 
             <div className="flex gap-3">
               <Link href={`/notes/${note.id}/edit`}>

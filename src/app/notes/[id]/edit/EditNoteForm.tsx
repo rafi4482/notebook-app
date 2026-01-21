@@ -11,6 +11,7 @@ interface EditNoteFormProps {
     title: string;
     content: string;
     images?: string | null;
+    tags?: string | null;
   };
 }
 
@@ -24,6 +25,10 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
   const [images, setImages] = useState<string[]>(
     note.images ? JSON.parse(note.images) : []
   );
+  const [tags, setTags] = useState<string[]>(
+    note.tags ? JSON.parse(note.tags) : []
+  );
+  const [tagInput, setTagInput] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,6 +78,7 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
   const handleSubmit = async (formData: FormData) => {
     // Add images to form data as JSON string
     formData.append("images", JSON.stringify(images));
+    formData.append("tags", JSON.stringify(tags));
     return formAction(formData);
   };
 
@@ -101,6 +107,50 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
 
       {/* Image Upload Section */}
       <div className="border-t pt-4">
+        {/* Tags Section */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+          <div className="flex gap-2 items-center">
+            <input
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === ",") {
+                  e.preventDefault();
+                  const t = tagInput.trim();
+                  if (t && !tags.includes(t)) {
+                    setTags((prev) => [...prev, t]);
+                  }
+                  setTagInput("");
+                }
+              }}
+              placeholder="Add a tag and press Enter"
+              className="w-full rounded-md border px-3 py-2 text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const t = tagInput.trim();
+                if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
+                setTagInput("");
+              }}
+              className="px-3 py-2 bg-gray-100 rounded-md text-sm"
+            >
+              Add
+            </button>
+          </div>
+
+          {tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {tags.map((t) => (
+                <span key={t} className="inline-flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1 text-sm">
+                  <span>{t}</span>
+                  <button type="button" onClick={() => setTags((prev) => prev.filter((x) => x !== t))} className="text-gray-600">×</button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Add Images

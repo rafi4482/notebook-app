@@ -19,11 +19,22 @@ export async function createNote(
   const title = formData.get("title");
   const content = formData.get("content");
   const imagesJson = formData.get("images") as string || "[]";
+  const tagsJson = formData.get("tags") as string || "[]";
+  let parsedTags: string[] = [];
+  try {
+    const t = JSON.parse(tagsJson);
+    if (Array.isArray(t)) {
+      parsedTags = t.map((x) => String(x).trim()).filter(Boolean).slice(0, 20);
+    }
+  } catch (err) {
+    parsedTags = [];
+  }
 
   // Validate with zod
   const result = noteSchema.safeParse({
     title,
     content,
+    tags: parsedTags,
   });
 
   if (!result.success) {
@@ -45,6 +56,7 @@ export async function createNote(
     content: sanitizedContent,
     userId: user.id,
     images: imagesJson,
+    tags: JSON.stringify(parsedTags),
   });
 
   revalidatePath("/");
@@ -62,11 +74,22 @@ export async function updateNote(
   const title = formData.get("title");
   const content = formData.get("content");
   const imagesJson = formData.get("images") as string || "[]";
+  const tagsJson = formData.get("tags") as string || "[]";
+  let parsedTags: string[] = [];
+  try {
+    const t = JSON.parse(tagsJson);
+    if (Array.isArray(t)) {
+      parsedTags = t.map((x) => String(x).trim()).filter(Boolean).slice(0, 20);
+    }
+  } catch (err) {
+    parsedTags = [];
+  }
 
   // Validate with zod
   const result = noteSchema.safeParse({
     title,
     content,
+    tags: parsedTags,
   });
 
   if (!result.success) {
@@ -102,6 +125,7 @@ export async function updateNote(
       title: sanitizedTitle,
       content: sanitizedContent,
       images: imagesJson,
+      tags: JSON.stringify(parsedTags),
     })
     .where(eq(notes.id, id));
 
@@ -120,11 +144,22 @@ export async function updateNoteWithImages(
   const title = formData.get("title");
   const content = formData.get("content");
   const imagesJson = formData.get("images") as string || "[]";
+  const tagsJson = formData.get("tags") as string || "[]";
+  let parsedTags: string[] = [];
+  try {
+    const t = JSON.parse(tagsJson);
+    if (Array.isArray(t)) {
+      parsedTags = t.map((x) => String(x).trim()).filter(Boolean).slice(0, 20);
+    }
+  } catch (err) {
+    parsedTags = [];
+  }
 
   // Validate with zod
   const result = noteSchema.safeParse({
     title,
     content,
+    tags: parsedTags,
   });
 
   if (!result.success) {
@@ -160,6 +195,7 @@ export async function updateNoteWithImages(
       title: sanitizedTitle,
       content: sanitizedContent,
       images: imagesJson,
+      tags: JSON.stringify(parsedTags),
     })
     .where(eq(notes.id, id));
 
