@@ -34,10 +34,19 @@ export default function TagList({ noteId, initialTags }: { noteId: number; initi
     <div className="mb-3 flex flex-wrap gap-2">
       {tags.map((t) => (
         <span key={t} className="inline-flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1 text-sm">
-          <span>{t}</span>
           <button
             type="button"
-            onClick={() => removeTag(t)}
+            onClick={() => router.push(`/?tag=${encodeURIComponent(t)}`)}
+            className="text-sm font-medium"
+          >
+            {t}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              removeTag(t);
+            }}
             className="text-gray-600"
             aria-label={`Remove ${t}`}
             disabled={loading === t}
