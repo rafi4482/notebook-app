@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useState, useRef } from "react";
-import { updateNoteWithImages } from "../../../../server/actions/notes";
+import { updateNoteWithImages } from "../../../../server/actions/notes.action";
+import { uploadImageAction } from "../../../../server/actions/upload.action";
 import { Button, Input } from "../../../../components/ui/client-component";
 import TipTapEditor from "../../../../components/editor/TipTapEditor";
 
@@ -45,18 +46,13 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
         const formData = new FormData();
         formData.append("file", file);
 
-        const response = await fetch("/api/upload/image", {
-          method: "POST",
-          body: formData,
-        });
+        const result = await uploadImageAction(formData);
 
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || "Failed to upload image");
+        if (!result.success) {
+          throw new Error(result.error);
         }
 
-        const data = await response.json();
-        setImages((prev) => [...prev, data.url]);
+        setImages((prev) => [...prev, result.url]);
       }
     } catch (error) {
       setUploadError(
@@ -218,4 +214,3 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
     </form>
   );
 }
-

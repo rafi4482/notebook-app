@@ -1,31 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { removeTag } from "../server/actions/tags.action";
 
 export default function TagList({ noteId, initialTags }: { noteId: number; initialTags: string[] }) {
   const [tags, setTags] = useState<string[]>(initialTags || []);
-  const [loading, setLoading] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [pendingTag, setPendingTag] = useState<string | null>(null);
   const router = useRouter();
 
-  const removeTag = async (tag: string) => {
-    setLoading(tag);
-    try {
-      const res = await fetch("/api/notes/remove-tag", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ noteId, tag }),
-      });
-
-      if (!res.ok) throw new Error("Failed to remove tag");
-      const data = await res.json();
-      setTags(data.tags || tags.filter((t) => t !== tag));
-      router.refresh();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(null);
-    }
+  const handleRemoveTag = (tag: string) => {
+    setPendingTag(tag);
+    startTransition(async () => {
+      try {
+        const result = await removeTag(noteId, tag);
+        if (result.success) {
+          setTags(result.tags);
+        } else {
+          console.error(result.error);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setPendingTag(null);
+      }
+    });
   };
 
   if (!tags || tags.length === 0) return null;
@@ -45,11 +45,11 @@ export default function TagList({ noteId, initialTags }: { noteId: number; initi
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              removeTag(t);
+              handleRemoveTag(t);
             }}
             className="text-gray-600"
             aria-label={`Remove ${t}`}
-            disabled={loading === t}
+            disabled={isPending && pendingTag === t}
           >
             ×
           </button>

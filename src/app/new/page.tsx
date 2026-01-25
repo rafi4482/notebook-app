@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { createNote } from "../../server/actions/notes";
+import { createNote } from "../../server/actions/notes.action";
+import { uploadImageAction } from "../../server/actions/upload.action";
 import { Button, Title, Input } from "../../components/ui/client-component";
 import TipTapEditor from "../../components/editor/TipTapEditor";
 import { PiArrowLeft } from "react-icons/pi";
@@ -28,18 +29,13 @@ export default function NewNotePage() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const response = await fetch("/api/upload/image", {
-          method: "POST",
-          body: formData,
-        });
+        const result = await uploadImageAction(formData);
 
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || "Failed to upload image");
+        if (!result.success) {
+          throw new Error(result.error);
         }
 
-        const data = await response.json();
-        setImages((prev) => [...prev, data.url]);
+        setImages((prev) => [...prev, result.url]);
       }
     } catch (error) {
       setUploadError(

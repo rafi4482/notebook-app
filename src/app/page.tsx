@@ -3,7 +3,8 @@ import { headers } from "next/headers";
 import { db } from "../db";
 import { notes } from "../db/schema";
 import { eq } from "drizzle-orm";
-import { deleteNote } from "../server/actions/notes";
+import { deleteNote } from "../server/actions/notes.action";
+import { getOrCreateUser } from "../server/actions/users.action";
 import { auth } from "@/src/utils/auth";
 import { Button, Text, Title } from "../components/ui/client-component";
 import { sanitizeContent } from "../lib/sanitize";
@@ -32,7 +33,6 @@ export default async function Home({ searchParams }: { searchParams?: { tag?: st
   }
 
   // Get or create user
-  const { getOrCreateUser } = await import("../server/actions/users");
   const user = await getOrCreateUser();
 
   // Get only notes for this user
@@ -121,10 +121,10 @@ export default async function Home({ searchParams }: { searchParams?: { tag?: st
             className="border border-gray-200 p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow"
           >
             <Title as="h2" className="text-lg mb-2" dangerouslySetInnerHTML={{ __html: sanitizeContent(note.title) }} />
-            
+
             {/* Display image gallery if images exist */}
             <ImageGallery imagesJson={note.images} />
-            
+
             {/* Render sanitized HTML so formatting (bold/italic) shows up */}
             <div className="text-gray-600 mb-4 prose" dangerouslySetInnerHTML={{ __html: sanitizeContent(note.content) }} />
 

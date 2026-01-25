@@ -2,11 +2,11 @@ import Link from "next/link";
 import { db } from "../../../../db";
 import { notes } from "../../../../db/schema";
 import { eq } from "drizzle-orm";
-import { updateNote } from "../../../../server/actions/notes";
 import { notFound } from "next/navigation";
 import { Button, Title, Input, Textarea } from "../../../../components/ui/client-component";
 import { PiArrowLeft } from "react-icons/pi";
 import { EditNoteForm } from "./EditNoteForm";
+import { getOrCreateUser } from "../../../../server/actions/users.action";
 
 export default async function EditNotePage({
   params,
@@ -23,7 +23,6 @@ export default async function EditNotePage({
   }
 
   // Get or create user
-  const { getOrCreateUser } = await import("../../../../server/actions/users");
   const user = await getOrCreateUser();
 
   // Get note and verify it belongs to the user
