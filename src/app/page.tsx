@@ -3,14 +3,14 @@ import { headers } from "next/headers";
 import { db } from "../db";
 import { notes } from "../db/schema";
 import { eq } from "drizzle-orm";
-import { deleteNote } from "../server/actions/notes.action";
+import { DeleteNoteButton } from "../components/DeleteNoteButton";
 import { getOrCreateUser } from "../server/actions/users.action";
 import { auth } from "@/src/utils/auth";
 import { Button, Text, Title } from "../components/ui/client-component";
 import { sanitizeContent } from "../lib/sanitize";
 import { ImageGallery } from "../components/ImageGallery";
 import TagList from "../components/TagList";
-import { PiPencilSimple, PiTrash, PiPlus } from "react-icons/pi";
+import { PiPencilSimple, PiPlus } from "react-icons/pi";
 
 export default async function Home({ searchParams }: { searchParams?: { tag?: string } }) {
   const hdrs = await headers();
@@ -148,23 +148,7 @@ export default async function Home({ searchParams }: { searchParams?: { tag?: st
                 </Button>
               </Link>
 
-              <form
-                action={async () => {
-                  "use server";
-                  await deleteNote(note.id);
-                }}
-              >
-                <Button
-                  type="submit"
-                  variant="outline"
-                  color="danger"
-                  size="sm"
-                  className="gap-2"
-                >
-                  <PiTrash className="h-4 w-4" />
-                  Delete
-                </Button>
-              </form>
+              <DeleteNoteButton noteId={note.id} />
             </div>
           </div>
         ))}

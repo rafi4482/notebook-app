@@ -7,6 +7,11 @@
 /* Enable enhanced form styles */
 @plugin '@tailwindcss/forms';
 
+/* Pointer cursor on buttons */
+button:hover {
+  cursor: pointer;
+}
+
 /* Define color palette using OKLCH color space */
 :root {
   /* Base Colors */
