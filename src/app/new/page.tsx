@@ -26,6 +26,10 @@ export default function NewNotePage() {
 
     try {
       for (const file of Array.from(files)) {
+        if (!file.type.startsWith("image/")) {
+          throw new Error(`"${file.name}" is not an image file`);
+        }
+
         const formData = new FormData();
         formData.append("file", file);
 
