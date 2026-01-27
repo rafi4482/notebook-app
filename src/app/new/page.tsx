@@ -72,12 +72,11 @@ export default function NewNotePage() {
 
       <form action={handleSubmit} className="space-y-4">
         <div>
-          <TipTapEditor
+          <Input
             name="title"
+            label="Title"
             placeholder="Note title"
             required
-            className="w-full"
-            simple
           />
           {state?.errors?.title?.[0] && (
             <p className="text-sm text-red-600">{state?.errors?.title?.[0]}</p>
@@ -85,6 +84,7 @@ export default function NewNotePage() {
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
           <TipTapEditor
             name="content"
             placeholder="Write your note content here..."
