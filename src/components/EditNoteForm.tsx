@@ -1,10 +1,10 @@
 "use client";
 
 import { useActionState, useState, useRef } from "react";
-import { updateNoteWithImages } from "../../../../server/actions/notes.action";
-import { uploadImageAction } from "../../../../server/actions/upload.action";
-import { Button, Input } from "../../../../components/ui/client-component";
-import TipTapEditor from "../../../../components/editor/TipTapEditor";
+import { updateNoteWithImages } from "../server/actions/notes.action";
+import { uploadImageAction } from "../server/actions/upload.action";
+import { Button, Input } from "./ui/client-component";
+import TipTapEditor from "./editor/TipTapEditor";
 
 interface EditNoteFormProps {
   note: {
@@ -81,13 +81,12 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
   return (
     <form action={handleSubmit} className="space-y-4">
       <div>
-        <TipTapEditor
+        <Input
           name="title"
-          initialContent={note.title}
+          label="Title"
+          defaultValue={note.title}
           placeholder="Note title"
           required
-          className="w-full"
-          simple
         />
         {state && 'errors' in state && state.errors && 'title' in state.errors && state.errors.title?.[0] && (
           <p className="text-sm text-red-600">{state.errors.title[0]}</p>
@@ -95,6 +94,7 @@ export function EditNoteForm({ note }: EditNoteFormProps) {
       </div>
 
       <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
         <TipTapEditor name="content" initialContent={note.content} required className="w-full" simple />
         {state && 'errors' in state && state.errors && 'content' in state.errors && state.errors.content?.[0] && (
           <p className="text-sm text-red-600">{state.errors.content[0]}</p>

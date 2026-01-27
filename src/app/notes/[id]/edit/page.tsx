@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Button, Title, Input, Textarea } from "../../../../components/ui/client-component";
 import { PiArrowLeft } from "react-icons/pi";
-import { EditNoteForm } from "./EditNoteForm";
+import { EditNoteForm } from "../../../../components/EditNoteForm";
 import { getOrCreateUser } from "../../../../server/actions/users.action";
 
 export default async function EditNotePage({
