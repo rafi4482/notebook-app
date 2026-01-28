@@ -67,6 +67,24 @@ export async function getNoteById(id: number) {
 }
 
 /**
+ * Get all notes for a user
+ */
+export async function getNotesByUserId(userId: number) {
+  try {
+    console.log(`[getNotesByUserId] Fetching notes for user ${userId}`);
+    const result = await db
+      .select()
+      .from(notes)
+      .where(eq(notes.userId, userId));
+    console.log(`[getNotesByUserId] Found ${result.length} notes for user ${userId}`);
+    return result;
+  } catch (error) {
+    console.error(`[getNotesByUserId] Failed to fetch notes for user ${userId}:`, error);
+    throw error;
+  }
+}
+
+/**
  * Create a new note record
  */
 export async function createNoteRecord(data: {

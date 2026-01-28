@@ -8,8 +8,17 @@ import {
   createNoteRecord,
   updateNoteRecord,
   deleteNoteRecord,
+  getNotesByUserId,
 } from "../services/notes.service";
 import { parseTagsFromJson } from "../services/tags.service";
+
+/**
+ * GET all notes for the current user
+ */
+export async function getUserNotes() {
+  const user = await getOrCreateUser();
+  return getNotesByUserId(user.id);
+}
 
 /**
  * CREATE

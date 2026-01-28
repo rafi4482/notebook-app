@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
-import { db } from "../db";
-import { notes } from "../db/schema";
-import { eq } from "drizzle-orm";
 import { DeleteNoteButton } from "../components/DeleteNoteButton";
-import { getOrCreateUser } from "../server/actions/users.action";
+import { getUserNotes } from "../server/actions/notes.action";
 import { auth } from "@/src/utils/auth";
 import { Button, Text, Title } from "../components/ui/client-component";
 import { sanitizeContent } from "../lib/sanitize";
@@ -32,14 +29,8 @@ export default async function Home({ searchParams }: { searchParams?: { tag?: st
     );
   }
 
-  // Get or create user
-  const user = await getOrCreateUser();
-
-  // Get only notes for this user
-  const allNotes = await db
-    .select()
-    .from(notes)
-    .where(eq(notes.userId, user.id));
+  // Get notes for current user
+  const allNotes = await getUserNotes();
 
   const sp = await (searchParams as any);
   const activeTag = sp?.tag;
