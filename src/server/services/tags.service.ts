@@ -1,6 +1,7 @@
 import { db } from "../../db";
 import { notes } from "../../db/schema";
 import { eq } from "drizzle-orm";
+import { getNoteById } from "./notes.service";
 
 /**
  * Parse tags from JSON string with error handling
@@ -16,17 +17,6 @@ export function parseTagsFromJson(json: string | null | undefined): string[] {
   } catch {
     return [];
   }
-}
-
-/**
- * Get a note by ID
- */
-export async function getNoteById(noteId: number) {
-  return db
-    .select()
-    .from(notes)
-    .where(eq(notes.id, noteId))
-    .then((res) => res[0]);
 }
 
 /**

@@ -54,11 +54,16 @@ export function validateAndSanitizeNote(
  * Get a note by ID
  */
 export async function getNoteById(id: number) {
-  return db
-    .select()
-    .from(notes)
-    .where(eq(notes.id, id))
-    .then((res) => res[0]);
+  try {
+    const result = await db
+      .select()
+      .from(notes)
+      .where(eq(notes.id, id));
+    return result[0];
+  } catch (error) {
+    console.error(`[getNoteById] Failed to fetch note with id ${id}:`, error);
+    throw error;
+  }
 }
 
 /**
@@ -71,7 +76,15 @@ export async function createNoteRecord(data: {
   images: string;
   tags: string;
 }) {
-  return db.insert(notes).values(data);
+  try {
+    console.log(`[createNoteRecord] Creating note for user ${data.userId}`);
+    const result = await db.insert(notes).values(data);
+    console.log(`[createNoteRecord] Note created successfully for user ${data.userId}`);
+    return result;
+  } catch (error) {
+    console.error(`[createNoteRecord] Failed to create note for user ${data.userId}:`, error);
+    throw error;
+  }
 }
 
 /**
@@ -87,33 +100,49 @@ export async function updateNoteRecord(
   },
   userId: number
 ): Promise<{ success: true } | { success: false; error: string }> {
-  const note = await getNoteById(id);
+  try {
+    console.log(`[updateNoteRecord] Updating note ${id} for user ${userId}`);
 
-  if (!note || note.userId !== userId) {
+    const note = await getNoteById(id);
+
+    if (!note || note.userId !== userId) {
+      console.warn(`[updateNoteRecord] Note ${id} not found or unauthorized access by user ${userId}`);
+      return {
+        success: false,
+        error: "Note not found or you don't have permission to edit it",
+      };
+    }
+
+    // Find and delete removed images from R2
+    const oldImages: string[] = note.images ? JSON.parse(note.images) : [];
+    const newImages: string[] = data.images ? JSON.parse(data.images) : [];
+    const removedImages = oldImages.filter((img) => !newImages.includes(img));
+
+    if (removedImages.length > 0) {
+      console.log(`[updateNoteRecord] Deleting ${removedImages.length} removed images from R2`);
+    }
+
+    for (const imageUrl of removedImages) {
+      const fileName = imageUrl.split("/").slice(-2).join("/");
+      await deleteImageFromR2(fileName).catch((err) => {
+        console.error(`[updateNoteRecord] Failed to delete image ${fileName} from R2:`, err);
+      });
+    }
+
+    await db
+      .update(notes)
+      .set(data)
+      .where(eq(notes.id, id));
+
+    console.log(`[updateNoteRecord] Note ${id} updated successfully`);
+    return { success: true };
+  } catch (error) {
+    console.error(`[updateNoteRecord] Failed to update note ${id}:`, error);
     return {
       success: false,
-      error: "Note not found or you don't have permission to edit it",
+      error: "Failed to update note",
     };
   }
-
-  // Find and delete removed images from R2
-  const oldImages: string[] = note.images ? JSON.parse(note.images) : [];
-  const newImages: string[] = data.images ? JSON.parse(data.images) : [];
-  const removedImages = oldImages.filter((img) => !newImages.includes(img));
-
-  for (const imageUrl of removedImages) {
-    const fileName = imageUrl.split("/").slice(-2).join("/");
-    await deleteImageFromR2(fileName).catch((err) => {
-      console.error("Failed to delete image from R2:", err);
-    });
-  }
-
-  await db
-    .update(notes)
-    .set(data)
-    .where(eq(notes.id, id));
-
-  return { success: true };
 }
 
 /**
@@ -123,36 +152,46 @@ export async function deleteNoteRecord(
   id: number,
   userId: number
 ): Promise<{ success: true } | { success: false; error: string }> {
-  const note = await getNoteById(id);
+  try {
+    console.log(`[deleteNoteRecord] Deleting note ${id} for user ${userId}`);
 
-  if (!note || note.userId !== userId) {
+    const note = await getNoteById(id);
+
+    if (!note || note.userId !== userId) {
+      console.warn(`[deleteNoteRecord] Note ${id} not found or unauthorized access by user ${userId}`);
+      return {
+        success: false,
+        error: "Note not found or you don't have permission to delete it",
+      };
+    }
+
+    // Delete associated images from R2
+    if (note.images) {
+      try {
+        const images = JSON.parse(note.images);
+        if (Array.isArray(images) && images.length > 0) {
+          console.log(`[deleteNoteRecord] Deleting ${images.length} images from R2`);
+          for (const imageUrl of images) {
+            const fileName = imageUrl.split("/").slice(-2).join("/");
+            await deleteImageFromR2(fileName).catch((err) => {
+              console.error(`[deleteNoteRecord] Failed to delete image ${fileName} from R2:`, err);
+            });
+          }
+        }
+      } catch (err) {
+        console.error(`[deleteNoteRecord] Error parsing images for note ${id}:`, err);
+      }
+    }
+
+    await db.delete(notes).where(eq(notes.id, id));
+
+    console.log(`[deleteNoteRecord] Note ${id} deleted successfully`);
+    return { success: true };
+  } catch (error) {
+    console.error(`[deleteNoteRecord] Failed to delete note ${id}:`, error);
     return {
       success: false,
-      error: "Note not found or you don't have permission to delete it",
+      error: "Failed to delete note",
     };
   }
-
-  // Delete associated images from R2
-  if (note.images) {
-    try {
-      const images = JSON.parse(note.images);
-      if (Array.isArray(images)) {
-        for (const imageUrl of images) {
-          // Extract file name from URL
-          // URL format: https://domain.com/notes-images/timestamp-random.jpg
-          const fileName = imageUrl.split("/").slice(-2).join("/");
-          await deleteImageFromR2(fileName).catch((err) => {
-            console.error("Failed to delete image from R2:", err);
-            // Don't fail the entire delete operation if image deletion fails
-          });
-        }
-      }
-    } catch (err) {
-      console.error("Error parsing images for deletion:", err);
-    }
-  }
-
-  await db.delete(notes).where(eq(notes.id, id));
-
-  return { success: true };
 }
