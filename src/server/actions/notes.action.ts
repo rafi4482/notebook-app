@@ -9,6 +9,11 @@ import {
   updateNoteRecord,
   deleteNoteRecord,
   getNotesByUserId,
+  getNotesByUserIdWithFilters,
+  getUserTags,
+  type NotesFilterParams,
+  type PaginatedNotesResult,
+  type TagCount,
 } from "../services/notes.service";
 import { parseTagsFromJson } from "../services/tags.service";
 
@@ -123,4 +128,22 @@ export async function deleteNote(id: number) {
   }
 
   revalidatePath("/");
+}
+
+/**
+ * GET paginated notes with search and tag filtering for the current user
+ */
+export async function getUserNotesWithFilters(
+  params: NotesFilterParams
+): Promise<PaginatedNotesResult> {
+  const user = await getOrCreateUser();
+  return getNotesByUserIdWithFilters(user.id, params);
+}
+
+/**
+ * GET all unique tags with counts for the current user
+ */
+export async function getUserTagCounts(): Promise<TagCount[]> {
+  const user = await getOrCreateUser();
+  return getUserTags(user.id);
 }

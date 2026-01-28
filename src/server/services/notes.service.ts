@@ -1,10 +1,38 @@
 import { db } from "../../db";
 import { notes } from "../../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, or, ilike, sql, desc } from "drizzle-orm";
 import { noteSchema } from "../../lib/validations";
 import { sanitizeContent } from "../../lib/sanitize";
 import { parseTagsFromJson } from "./tags.service";
 import { deleteImageFromR2 } from "../../lib/r2";
+
+const NOTES_PER_PAGE = 5;
+
+export interface PaginatedNotesResult {
+  notes: Array<typeof notes.$inferSelect>;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  filters: {
+    search: string | null;
+    tag: string | null;
+  };
+}
+
+export interface NotesFilterParams {
+  page?: number;
+  search?: string | null;
+  tag?: string | null;
+}
+
+export interface TagCount {
+  tag: string;
+  count: number;
+}
 
 export type NoteValidationResult =
   | {
@@ -211,5 +239,125 @@ export async function deleteNoteRecord(
       success: false,
       error: "Failed to delete note",
     };
+  }
+}
+
+/**
+ * Get paginated notes for a user with optional search and tag filtering
+ */
+export async function getNotesByUserIdWithFilters(
+  userId: number,
+  params: NotesFilterParams
+): Promise<PaginatedNotesResult> {
+  const page = Math.max(1, params.page || 1);
+  const search = params.search?.trim() || null;
+  const tag = params.tag?.trim() || null;
+  const offset = (page - 1) * NOTES_PER_PAGE;
+
+  try {
+    console.log(`[getNotesByUserIdWithFilters] Fetching notes for user ${userId} with filters:`, { page, search, tag });
+
+    // Build where conditions
+    const conditions = [eq(notes.userId, userId)];
+
+    if (search) {
+      const searchPattern = `%${search}%`;
+      conditions.push(
+        or(
+          ilike(notes.title, searchPattern),
+          ilike(notes.content, searchPattern)
+        )!
+      );
+    }
+
+    if (tag) {
+      // Tags are stored as JSON text like '["tag1","tag2"]'
+      // Use LIKE to check if the tag exists in the array
+      const tagPattern = `%"${tag}"%`;
+      conditions.push(ilike(notes.tags, tagPattern));
+    }
+
+    const whereClause = and(...conditions);
+
+    // Get total count for pagination
+    const countResult = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(notes)
+      .where(whereClause);
+
+    const totalCount = countResult[0]?.count || 0;
+    const totalPages = Math.ceil(totalCount / NOTES_PER_PAGE);
+
+    // Get paginated notes
+    const result = await db
+      .select()
+      .from(notes)
+      .where(whereClause)
+      .orderBy(desc(notes.createdAt))
+      .limit(NOTES_PER_PAGE)
+      .offset(offset);
+
+    console.log(`[getNotesByUserIdWithFilters] Found ${result.length} notes (total: ${totalCount})`);
+
+    return {
+      notes: result,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+      filters: {
+        search,
+        tag,
+      },
+    };
+  } catch (error) {
+    console.error(`[getNotesByUserIdWithFilters] Failed to fetch notes for user ${userId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Get all unique tags with counts for a user
+ */
+export async function getUserTags(userId: number): Promise<TagCount[]> {
+  try {
+    console.log(`[getUserTags] Fetching tags for user ${userId}`);
+
+    const userNotes = await db
+      .select({ tags: notes.tags })
+      .from(notes)
+      .where(eq(notes.userId, userId));
+
+    // Aggregate tag counts in memory since tags are stored as JSON text
+    const tagCounts: Record<string, number> = {};
+
+    for (const note of userNotes) {
+      if (!note.tags) continue;
+      try {
+        const tags = JSON.parse(note.tags);
+        if (Array.isArray(tags)) {
+          for (const tag of tags) {
+            if (typeof tag === "string") {
+              tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+            }
+          }
+        }
+      } catch {
+        // Ignore malformed JSON
+      }
+    }
+
+    const result = Object.entries(tagCounts)
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((a, b) => b.count - a.count);
+
+    console.log(`[getUserTags] Found ${result.length} unique tags for user ${userId}`);
+    return result;
+  } catch (error) {
+    console.error(`[getUserTags] Failed to fetch tags for user ${userId}:`, error);
+    throw error;
   }
 }
