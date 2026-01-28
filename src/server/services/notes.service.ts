@@ -75,7 +75,7 @@ export async function createNoteRecord(data: {
 }
 
 /**
- * Update a note record with ownership check
+ * Update a note record with ownership check and R2 cleanup for removed images
  */
 export async function updateNoteRecord(
   id: number,
@@ -94,6 +94,18 @@ export async function updateNoteRecord(
       success: false,
       error: "Note not found or you don't have permission to edit it",
     };
+  }
+
+  // Find and delete removed images from R2
+  const oldImages: string[] = note.images ? JSON.parse(note.images) : [];
+  const newImages: string[] = data.images ? JSON.parse(data.images) : [];
+  const removedImages = oldImages.filter((img) => !newImages.includes(img));
+
+  for (const imageUrl of removedImages) {
+    const fileName = imageUrl.split("/").slice(-2).join("/");
+    await deleteImageFromR2(fileName).catch((err) => {
+      console.error("Failed to delete image from R2:", err);
+    });
   }
 
   await db
