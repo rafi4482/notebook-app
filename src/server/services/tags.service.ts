@@ -28,19 +28,24 @@ export async function removeTagFromNote(
   tag: string,
   userId: number
 ): Promise<{ success: true; tags: string[] } | { success: false; error: string }> {
-  const note = await getNoteById(noteId);
+  try {
+    const note = await getNoteById(noteId);
 
-  if (!note || note.userId !== userId) {
-    return { success: false, error: "Not found or no permission" };
+    if (!note || note.userId !== userId) {
+      return { success: false, error: "Not found or no permission" };
+    }
+
+    const currentTags = parseTagsFromJson(note.tags);
+    const updatedTags = currentTags.filter((t) => t !== tag);
+
+    await db
+      .update(notes)
+      .set({ tags: JSON.stringify(updatedTags) })
+      .where(eq(notes.id, noteId));
+
+    return { success: true, tags: updatedTags };
+  } catch (error) {
+    console.error(`[removeTagFromNote] Failed to remove tag "${tag}" from note ${noteId}:`, error);
+    return { success: false, error: "Failed to remove tag" };
   }
-
-  const currentTags = parseTagsFromJson(note.tags);
-  const updatedTags = currentTags.filter((t) => t !== tag);
-
-  await db
-    .update(notes)
-    .set({ tags: JSON.stringify(updatedTags) })
-    .where(eq(notes.id, noteId));
-
-  return { success: true, tags: updatedTags };
 }
